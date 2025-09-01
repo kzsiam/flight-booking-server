@@ -131,7 +131,7 @@ app.post("/signup", async (req, res) => {
   res.json({ message: "Verification code sent to email" });
 });
 
-✅ Verify
+// ✅ Verify
 app.post("/verify", async (req, res) => {
   const { email, code } = req.body;
   console.log(code)
