@@ -155,66 +155,66 @@ app.post("/verify", async (req, res) => {
 
 });
 
-// // ✅ Resend OTP
-// app.post("/resend-otp", async (req, res) => {
-//   const { email } = req.body;
+// ✅ Resend OTP
+app.post("/resend-otp", async (req, res) => {
+  const { email } = req.body;
 
-//   // Check if user has a pending signup
-//   const pending = pendingUsers[email];
-//   if (!pending) return res.json({ message: "No signup request found" });
+  // Check if user has a pending signup
+  const pending = pendingUsers[email];
+  if (!pending) return res.json({ message: "No signup request found" });
 
-//   // Generate new OTP
-//   const newCode = Math.floor(100000 + Math.random() * 900000);
-//   pendingUsers[email].code = newCode; // update OTP
+  // Generate new OTP
+  const newCode = Math.floor(100000 + Math.random() * 900000);
+  pendingUsers[email].code = newCode; // update OTP
 
-//   try {
-//     await transporter.sendMail({
-//       from: "yourEmail@gmail.com",
-//       to: email,
-//       subject: "Your new verification code",
-//       text: `Your new verification code is: ${newCode}`,
-//     });
+  try {
+    await transporter.sendMail({
+      from: "yourEmail@gmail.com",
+      to: email,
+      subject: "Your new verification code",
+      text: `Your new verification code is: ${newCode}`,
+    });
 
-//     res.json({ message: "OTP resent successfully" });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Failed to resend OTP" });
-//   }
-// });
+    res.json({ message: "OTP resent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to resend OTP" });
+  }
+});
 
 
-// // 🔹 Login Route
-// app.post("/login", passport.authenticate("local"), (req, res) => {
-//   res.json({ message: "Login successful", user: req.user });
-// });
+// 🔹 Login Route
+app.post("/login", passport.authenticate("local"), (req, res) => {
+  res.json({ message: "Login successful", user: req.user });
+});
 
-// // 🔹 Google Auth Routes
-// app.get(
-//   "/auth/google",
-//   passport.authenticate("google", { scope: ["profile", "email"] })
-// );
+// 🔹 Google Auth Routes
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
 
-// app.get(
-//   "/auth/google/callback",
-//   passport.authenticate("google", {
-//     failureRedirect: "http://localhost:5173/login",
-//     session: true,
-//   }),
-//   (req, res) => {
-//     // Redirect to frontend after success
-//     res.redirect("http://localhost:5173/?googleLogin=success");
-//   }
-// );
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "http://localhost:5173/login",
+    session: true,
+  }),
+  (req, res) => {
+    // Redirect to frontend after success
+    res.redirect("http://localhost:5173/?googleLogin=success");
+  }
+);
 
-// // Get current user
-// // Current logged in user
-// app.get("/auth/me", (req, res) => {
-//   if (req.isAuthenticated()) {
-//     res.json({ user: req.user });
-//   } else {
-//     res.status(401).json({ user: null });
-//   }
-// });
+// Get current user
+// Current logged in user
+app.get("/auth/me", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json({ user: req.user });
+  } else {
+    res.status(401).json({ user: null });
+  }
+});
 
 app.get("/", (req, res) => res.send("Hello I am flight server"));
 app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
