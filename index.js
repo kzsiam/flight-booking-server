@@ -131,29 +131,29 @@ app.post("/signup", async (req, res) => {
   res.json({ message: "Verification code sent to email" });
 });
 
-// ✅ Verify
-// app.post("/verify", async (req, res) => {
-//   const { email, code } = req.body;
-//   console.log(code)
-//   const pending = pendingUsers[email];
-//   if (!pending) return res.json({ message: "No signup request found" });
+✅ Verify
+app.post("/verify", async (req, res) => {
+  const { email, code } = req.body;
+  console.log(code)
+  const pending = pendingUsers[email];
+  if (!pending) return res.json({ message: "No signup request found" });
 
-//   if (String(pending.code) === String(code)) {
-//     const newUser = {
-//       email: pending.email,
-//       password: pending.password,
-//       verified: true,
-//     };
-//     const result = await usersCollections.insertOne(newUser);
-//     delete pendingUsers[email];
+  if (String(pending.code) === String(code)) {
+    const newUser = {
+      email: pending.email,
+      password: pending.password,
+      verified: true,
+    };
+    const result = await usersCollections.insertOne(newUser);
+    delete pendingUsers[email];
 
-//     // send back the created user
-//     res.json({ message: "Signup Successful", user: newUser });
-//   } else {
-//     res.json({ message: "Invalid code" });
-//   }
+    // send back the created user
+    res.json({ message: "Signup Successful", user: newUser });
+  } else {
+    res.json({ message: "Invalid code" });
+  }
 
-// });
+});
 
 // // ✅ Resend OTP
 // app.post("/resend-otp", async (req, res) => {
