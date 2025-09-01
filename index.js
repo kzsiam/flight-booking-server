@@ -74,8 +74,8 @@ passport.use(
 passport.use(
   new GoogleStrategy(
     {
-      clientID: "859334940084-n1rdmvpcochr819m5mlhcjpmb7gtf4ui.apps.googleusercontent.com",
-      clientSecret: "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",
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "http://localhost:3000/auth/google/callback", // backend callback
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -106,8 +106,8 @@ passport.deserializeUser(async (id, done) => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "kazisiam248@gmail.com",
-    pass: "xnrdegtebuvniwug",
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
