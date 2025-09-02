@@ -10,9 +10,12 @@ const nodemailer = require("nodemailer");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
+app.use(cookieParser())
 
 //  session setup 
 app.use(
@@ -36,6 +39,20 @@ const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PAS
 const client = new MongoClient(uri, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
 });
+
+const verifyToken = (req,res,next) =>{
+  const token = req.cookies?.token;
+  if(!token){
+    return res.status(401).send({message: "unauthorized access"})
+  }
+  jwt.verify(token.process.env.JWT_SECRET, (err,decoded) =>{
+    if(err){
+      return res.status(401).send({message: "unauthorized access"})
+    }
+    req.user = decoded;
+    next()
+  })
+}
 
 let usersCollections; // global scope এ declare
 
@@ -134,7 +151,7 @@ app.post("/signup", async (req, res) => {
 // ✅ Verify
 app.post("/verify", async (req, res) => {
   const { email, code } = req.body;
-  console.log(code)
+  
   const pending = pendingUsers[email];
   if (!pending) return res.json({ message: "No signup request found" });
 
@@ -216,5 +233,20 @@ app.get("/auth/me", (req, res) => {
   }
 });
 
+app.post('/jwt', async(req,res) =>{
+  const user = req.body;
+  console.log(user)
+  const token = jwt.sign(user,process.env.JWT_SECRET, {expiresIn:"1d"})
+  res.cookie('token', token,{
+    httpOnly:true,
+    secure:false
+  }).send({success:true})
+})
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("token"); // cookie remove
+  res.json({ message: "Logged out" });
+});
+
 app.get("/", (req, res) => res.send("Hello I am flight server"));
-app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+app.listen(port, () => console.log(` Server running on port ${port}`));
