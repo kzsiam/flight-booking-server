@@ -40,14 +40,14 @@ const client = new MongoClient(uri, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
 });
 
-const verifyToken = (req,res,next) =>{
+const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
-  if(!token){
-    return res.status(401).send({message: "unauthorized access"})
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" })
   }
-  jwt.verify(token.process.env.JWT_SECRET, (err,decoded) =>{
-    if(err){
-      return res.status(401).send({message: "unauthorized access"})
+  jwt.verify(token.process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorized access" })
     }
     req.user = decoded;
     next()
@@ -151,7 +151,7 @@ app.post("/signup", async (req, res) => {
 // ✅ Verify
 app.post("/verify", async (req, res) => {
   const { email, code } = req.body;
-  
+
   const pending = pendingUsers[email];
   if (!pending) return res.json({ message: "No signup request found" });
 
@@ -233,20 +233,63 @@ app.get("/auth/me", (req, res) => {
   }
 });
 
-app.post('/jwt', async(req,res) =>{
+app.post('/jwt', async (req, res) => {
   const user = req.body;
   console.log(user)
-  const token = jwt.sign(user,process.env.JWT_SECRET, {expiresIn:"1d"})
-  res.cookie('token', token,{
-    httpOnly:true,
-    secure:false
-  }).send({success:true})
+  const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "1d" })
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: false
+  }).send({ success: true })
 })
 
 app.post("/logout", (req, res) => {
   res.clearCookie("token"); // cookie remove
   res.json({ message: "Logged out" });
 });
+
+// Forgot password request
+app.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  const user = await usersCollections.findOne({ email });
+  if (!user) return res.json({ message: "User not found" });
+
+  // Generate reset token
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+
+  const resetLink = `http://localhost:5173/reset-password/${token}`;
+
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
+    to: email,
+    subject: "Reset your password",
+    html: `<p>Click here to reset your password:</p>
+           <a href="${resetLink}">${resetLink}</a>`,
+  });
+
+  res.json({ message: "Reset link sent to your email" });
+});
+
+// Reset password
+// app.post("/reset-password/:token", async (req, res) => {
+//   const { token } = req.params;
+//   const { password } = req.body;
+
+//   try {
+//     const decoded = jwt.verify(token, JWT_SECRET);
+//     console.log(decoded)
+//     const hashed = await bcrypt.hash(password, 10);
+
+//     await usersCollections.updateOne(
+//       { _id: new ObjectId(decoded.id) },
+//       { $set: { password: hashed } }
+//     );
+
+//     res.json({ message: "Password reset successful" });
+//   } catch (err) {
+//     res.status(400).json({ message: "Invalid or expired token" });
+//   }
+// });
 
 app.get("/", (req, res) => res.send("Hello I am flight server"));
 app.listen(port, () => console.log(` Server running on port ${port}`));
