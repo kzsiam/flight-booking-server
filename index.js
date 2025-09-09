@@ -258,38 +258,152 @@ app.post("/forgot-password", async (req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
   const resetLink = `http://localhost:5173/reset-password/${token}`;
+  const brand = {
+    name: "MeghFly",
+    url: "https://meghfly.com",
+    logo: "https://meghfly.com/logo.png",
+    supportPhone: "+88 09678 332211",
+    supportEmail: "info@meghfly.com",
+    messengerUrl: "https://m.me/MeghFly"
+  };
 
   await transporter.sendMail({
     from: process.env.GMAIL_USER,
     to: email,
     subject: "Reset your password",
-    html: `<p>Click here to reset your password:</p>
-           <a href="${resetLink}">${resetLink}</a>`,
+    // html: `<p>Click here to reset your password:</p>
+    //        <a href="${resetLink}">${resetLink}</a>`,
+    html: `
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Password reset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      .btn {
+        background:#f7c51e;
+        color:#0b2c5f;
+        text-decoration:none;
+        display:inline-block;
+        padding:12px 22px;
+        border-radius:8px;
+        font-weight:700;
+        font-size:14px
+      }
+      .muted {
+        color:#6b7280;
+        font-size:12px;
+        line-height:18px
+      }
+      @media (prefers-color-scheme: dark) {
+        body {background:#0b0f19!important;color:#e5e7eb!important}
+        .card {background:#111827!important}
+      }
+    </style>
+  </head>
+  <body style="margin:0;background:#ffffff;font-family:Inter,Segoe UI,Arial,sans-serif;color:#0b2c5f;">
+    <!-- Hidden preheader text -->
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+      Reset your ${brand.name} password
+    </div>
+
+    <!-- header -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+      <tr>
+        <td style="padding:22px 24px;border-bottom:1px solid #eef2f7;">
+          <a href="${brand.url}" target="_blank" style="text-decoration:none;">
+            <img src="${brand.logo}" height="28" alt="${brand.name}" style="display:block">
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <!-- body -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center" style="padding:36px 16px 24px;">
+          <table role="presentation" width="560" cellpadding="0" cellspacing="0" class="card"
+                 style="max-width:560px;background:#ffffff;border-radius:12px;">
+            <tr>
+              <td align="center" style="padding:32px 24px 8px;">
+                <div style="background:#eef4ff;width:120px;height:120px;border-radius:60px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                  <svg width="58" height="58" viewBox="0 0 24 24" fill="none"
+                       xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="5" y="10" width="14" height="10" rx="2" fill="#3b5b8f"/>
+                    <path d="M8 10V8a4 4 0 1 1 8 0v2" stroke="#3b5b8f" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="15" r="1.3" fill="#1e3a8a"/>
+                  </svg>
+                </div>
+
+                <h1 style="margin:24px 0 8px;font-size:18px;line-height:24px;color:#0b2c5f;">Hello</h1>
+                <p style="margin:0 0 20px;font-size:14px;line-height:22px;color:#334155;">
+                  You recently requested a password reset for your ${brand.name} account.
+                  To complete the process, click the button below.
+                </p>
+
+                <a href="${resetLink}" class="btn" target="_blank">RESET NOW</a>
+
+                <p class="muted" style="margin:24px 0 8px;">
+                  If you didn’t request this, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- footer -->
+          <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;margin-top:28px;">
+            <tr>
+              <td align="center" style="padding:8px;">
+                <p style="margin:0 0 6px;font-weight:600;color:#0b2c5f;">Need Help?</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" align="center">
+                  <tr>
+                    <td style="padding:6px 10px;font-size:13px;color:#0b2c5f;">
+                      📞 ${brand.supportPhone}
+                    </td>
+                    <td style="padding:6px 10px;font-size:13px;">
+                      ✉️ <a href="mailto:${brand.supportEmail}" style="color:#0b2c5f;text-decoration:none;">${brand.supportEmail}</a>
+                    </td>
+                    <td style="padding:6px 10px;font-size:13px;">
+                      💬 <a href="${brand.messengerUrl}" style="color:#0b2c5f;text-decoration:none;">Messenger</a>
+                    </td>
+                  </tr>
+                </table>
+                <p class="muted" style="margin:14px 0 0;">© ${new Date().getFullYear()} ${brand.name}. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
   });
 
   res.json({ message: "Reset link sent to your email" });
 });
 
 // Reset password
-// app.post("/reset-password/:token", async (req, res) => {
-//   const { token } = req.params;
-//   const { password } = req.body;
+app.post("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
 
-//   try {
-//     const decoded = jwt.verify(token, JWT_SECRET);
-//     console.log(decoded)
-//     const hashed = await bcrypt.hash(password, 10);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded)
+    const hashed = await bcrypt.hash(password, 10);
 
-//     await usersCollections.updateOne(
-//       { _id: new ObjectId(decoded.id) },
-//       { $set: { password: hashed } }
-//     );
+    await usersCollections.updateOne(
+      { _id: new ObjectId(decoded.id) },
+      { $set: { password: hashed } }
+    );
 
-//     res.json({ message: "Password reset successful" });
-//   } catch (err) {
-//     res.status(400).json({ message: "Invalid or expired token" });
-//   }
-// });
+    res.json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(400).json({ message: "Invalid or expired token" });
+  }
+});
 
 app.get("/", (req, res) => res.send("Hello I am flight server"));
 app.listen(port, () => console.log(` Server running on port ${port}`));
